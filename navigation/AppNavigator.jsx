@@ -11,6 +11,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import DishDetailsScreen from '../screens/DishDetailsScreen';
 import MealPlanDetailScreen from '../screens/MealPlanDetailScreen';
+import LoginScreen from '../screens/LoginScreen';
 // import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 
 const Tab = createBottomTabNavigator();
@@ -18,6 +19,24 @@ const Stack = createNativeStackNavigator();
 //  25b3c4eda6f64b83830b08e2d1c379f4
 const DiscoverStack = createNativeStackNavigator();
 const MealPlanStack = createNativeStackNavigator();
+const AuthStack = createNativeStackNavigator();
+
+function AuthStackNavigator() {
+  return (
+    <AuthStack.Navigator>
+      <AuthStack.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{headerShown: false}}
+      />
+      <AuthStack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{headerShown: false}}
+      />
+    </AuthStack.Navigator>
+  );
+}
 
 function DiscoverStackNavigator() {
   return (
@@ -118,7 +137,7 @@ function BottomTab() {
 
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={AuthStackNavigator}
         options={{
           headerShown: false,
           tabBarIcon: ({focused}) =>
