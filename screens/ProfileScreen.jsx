@@ -2,18 +2,23 @@ import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
+import {useDispatch, useSelector} from 'react-redux';
+import {logOut} from '../app/authSlice';
 const ProfileScreen = () => {
   const navigation = useNavigation();
-  const user = false;
+  const {token, user} = useSelector(state => state.auth);
+  const dispatch = useDispatch();
 
   if (user) {
     return (
-      <SafeAreaView>
-        <View>
-          <Text>Profile:</Text>
-          <Text>Name:</Text>
-          <TouchableOpacity>
-            <Text>Logout</Text>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loggedInContainer}>
+          <Text style={styles.profileText}>Profile: {user.email}</Text>
+          <Text style={styles.profileText}>Name: {user.name}</Text>
+          <TouchableOpacity
+            onPress={() => dispatch(logOut())}
+            style={styles.logoutButton}>
+            <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -91,5 +96,28 @@ const styles = StyleSheet.create({
   },
   link: {
     color: 'red',
+  },
+  loggedInContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: 'white',
+  },
+  profileText: {
+    fontSize: 18,
+    marginBottom: 10,
+    color: '#333',
+  },
+  logoutButton: {
+    marginTop: 20,
+    paddingHorizontal: 30,
+    paddingVertical: 10,
+    backgroundColor: 'red',
+    borderRadius: 20,
+  },
+  logoutText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 });

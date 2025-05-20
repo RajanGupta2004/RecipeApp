@@ -9,6 +9,10 @@ import {
 import React, {useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import axios from 'axios';
+import {useDispatch} from 'react-redux';
+import {setUser} from '../app/authSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LoginScreen = () => {
   const [name, setName] = useState('');
@@ -16,6 +20,35 @@ const LoginScreen = () => {
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+
+  const handleAuth = async () => {
+    const body = isLogin ? {email, password} : {email, password, name};
+    const url = isLogin ? '/api/v1/login' : '/api/v1/register';
+
+    console.log('body', body);
+    console.log('url', url);
+    try {
+      const response = await axios.post(
+        `http://192.168.189.29:8000${url}`,
+        body,
+        {
+          headers: {'Content-Type': 'application/json'},
+        },
+      );
+      console.log('response', response.data);
+      const {token, user} = response.data;
+
+      const authData = {token, user};
+      console.log('authData', authData);
+      dispatch(setUser(authData));
+
+      await AsyncStorage.setItem('auth', JSON.stringify(authData));
+      navigation.navigate('Profile');
+    } catch (error) {
+      console.log('Error in Auth', error);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -51,7 +84,7 @@ const LoginScreen = () => {
           secureTextEntry
         />
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity onPress={handleAuth} style={styles.button}>
           <Text style={styles.buttonText}>
             {isLogin ? 'Log In' : 'Sign Up'}
           </Text>

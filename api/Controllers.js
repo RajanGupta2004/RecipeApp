@@ -36,7 +36,8 @@ export const Register = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      data: {id: user._id, name: user.name, email: user.email, token},
+      user: {id: user._id, name: user.name, email: user.email},
+      token,
     });
   } catch (error) {
     console.log('Error to Register', error);
@@ -78,14 +79,14 @@ export const Login = async (req, res) => {
     };
     const token = await jwt.sign(payload, privateKey, {expiresIn: '9h'});
 
-    return res.status(201).json({
+    return res.status(200).json({
       success: true,
-      data: {
+      user: {
         id: existingUser._id,
         name: existingUser.name,
         email: existingUser.email,
-        token,
       },
+      token,
     });
   } catch (error) {
     console.log('Error to login', error);
