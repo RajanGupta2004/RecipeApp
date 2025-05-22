@@ -1,6 +1,7 @@
 import User from './models/user.model.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import Post from './models/post.model.js';
 
 export const Register = async (req, res) => {
   try {
@@ -93,5 +94,52 @@ export const Login = async (req, res) => {
     return res
       .status(500)
       .json({success: 'false', message: 'Something went wrong.....'});
+  }
+};
+
+export const createPost = async (req, res) => {
+  try {
+    const {recipeName, description} = req.body;
+    const file = req.file;
+
+    console.log('file', file);
+
+    if (!recipeName || !description) {
+      return res.status(400).json({message: 'All field are required...'});
+    }
+
+    if (!file) {
+      return res.status(400).json({message: 'file is required...'});
+    }
+
+    const post = await Post.create({
+      userId: req.user.id,
+      recipeName,
+      description,
+      imageUrl: `public/upload/${file.originalname}`,
+    });
+
+    return res.status(201).json({post});
+  } catch (error) {
+    console.log('Error while creating post', error);
+    return res.status(500).json({message: 'Something went wronge....'});
+  }
+};
+
+export const getAllPost = async (req, res) => {
+  try {
+    const allPost = await Post.find()
+      .populate('userId', 'name email')
+      .sort({createdAt: -1})
+      .limit(20);
+
+    if (!allPost) {
+      return res.status(404).json({message: 'Post Not Found...'});
+    }
+
+    return res.status(200).json({post: allPost});
+  } catch (error) {
+    console.log('Error', error);
+    return res.status(500).json({message: 'Something went wronge....'});
   }
 };

@@ -30,7 +30,7 @@ const LoginScreen = () => {
     console.log('url', url);
     try {
       const response = await axios.post(
-        `http://192.168.189.29:8000${url}`,
+        `http://192.168.204.29:8000${url}`,
         body,
         {
           headers: {'Content-Type': 'application/json'},

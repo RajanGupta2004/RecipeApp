@@ -12,14 +12,16 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import DishDetailsScreen from '../screens/DishDetailsScreen';
 import MealPlanDetailScreen from '../screens/MealPlanDetailScreen';
 import LoginScreen from '../screens/LoginScreen';
+import AddPostScreen from '../screens/AddPostScreen';
 // import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 
+//  25b3c4eda6f64b83830b08e2d1c379f4
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
-//  25b3c4eda6f64b83830b08e2d1c379f4
 const DiscoverStack = createNativeStackNavigator();
 const MealPlanStack = createNativeStackNavigator();
 const AuthStack = createNativeStackNavigator();
+const CommunityStack = createNativeStackNavigator();
 
 function AuthStackNavigator() {
   return (
@@ -72,6 +74,22 @@ function MealPlanStackNavigator() {
   );
 }
 
+function CommunityStackNavigator() {
+  return (
+    <CommunityStack.Navigator>
+      <CommunityStack.Screen
+        name="Community"
+        component={CommunityScreen}
+        options={{headerShown: false}}
+      />
+      <CommunityStack.Screen
+        name="AddPost"
+        component={AddPostScreen}
+        options={{headerShown: false}}
+      />
+    </CommunityStack.Navigator>
+  );
+}
 function BottomTab() {
   return (
     <Tab.Navigator>
@@ -91,7 +109,7 @@ function BottomTab() {
       />
       <Tab.Screen
         name="Community"
-        component={CommunityScreen}
+        component={CommunityStackNavigator}
         options={{
           headerShown: false,
           tabBarIcon: ({focused}) =>
