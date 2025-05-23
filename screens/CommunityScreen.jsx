@@ -1,14 +1,24 @@
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
+} from 'react-native';
 import Modal from 'react-native-modal';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
+import axios from 'axios';
+import moment from 'moment';
 
 const CommunityScreen = () => {
   const navigation = useNavigation();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [posts, setPosts] = useState();
+  const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const {token} = useSelector(state => state.auth);
 
@@ -19,6 +29,53 @@ const CommunityScreen = () => {
     }
     navigation.navigate('AddPost');
   };
+
+  const fetchPost = async () => {
+    setIsLoading(true);
+    try {
+      setIsLoading(true);
+      const res = await axios.get('http://192.168.102.29:8000/api/v1/post');
+      setPosts(res.data.post);
+    } catch (error) {
+      console.log('Error fetching post', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPost();
+  }, []);
+
+  const renderPost = ({item}) => {
+    return (
+      <View style={styles.postContainer}>
+        <Image
+          style={styles.postImage}
+          source={{
+            uri: 'https://img.spoonacular.com/recipes/647875-312x231.jpg',
+          }}
+        />
+        <View style={styles.postDetails}>
+          <Text style={styles.userName}>{item?.userId?.name}</Text>
+          <Text style={styles.timestamp}>
+            {moment(item.createdAt).fromNow()}
+          </Text>
+          <Text style={styles.recipeName}>{item.recipeName}</Text>
+          <Text style={styles.description}>{item.description}</Text>
+          <View style={styles.interactions}>
+            <TouchableOpacity>
+              <Text style={styles.likeText}>{item.likes.length} ❤️</Text>
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <Text style={styles.commentText}>{item.comments.length} 💬</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -26,11 +83,28 @@ const CommunityScreen = () => {
           <Text style={styles.headerTitle}>Our Community</Text>
           <TouchableOpacity
             onPress={handleAddPost}
-            style={styles.headerPlusIcon}>
-            <Text style={styles.headerPlusIconText}>+</Text>
+            style={styles.addPostButton}>
+            <Text style={styles.addPostText}>+</Text>
           </TouchableOpacity>
         </View>
+
+        {isLoading ? (
+          <ActivityIndicator size="large" color="red" style={{marginTop: 30}} />
+        ) : posts?.length === 0 ? (
+          <View style={styles.noPostView}>
+            <Text style={styles.noPostText}>No posts available</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={posts}
+            renderItem={renderPost}
+            keyExtractor={item => item._id}
+            contentContainerStyle={{paddingBottom: 20}}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
       </View>
+
       <Modal
         isVisible={isModalVisible}
         onBackdropPress={() => setIsModalVisible(false)}
@@ -40,14 +114,16 @@ const CommunityScreen = () => {
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Please Log In</Text>
           <Text style={styles.modalText}>
-            You need to be logged in to like a post or create a new post
+            You need to be logged in to like or create a post.
           </Text>
           <TouchableOpacity
-            onPress={() => navigation.navigate('Profile')}
+            onPress={() => {
+              setIsModalVisible(false);
+              navigation.navigate('Profile');
+            }}
             style={styles.modalButton}>
             <Text style={styles.modalButtonText}>Go To Profile</Text>
           </TouchableOpacity>
-
           <TouchableOpacity onPress={() => setIsModalVisible(false)}>
             <Text style={styles.modalCancelButtonText}>Cancel</Text>
           </TouchableOpacity>
@@ -62,38 +138,97 @@ export default CommunityScreen;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    backgroundColor: '#f9f9f9',
   },
   container: {
     flex: 1,
-    backgroundColor: 'white',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 20,
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 27,
-    fontWeight: '600',
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#333',
   },
-  headerPlusIcon: {
-    backgroundColor: 'red',
-    color: 'white',
-    width: 45,
-    height: 45,
-    borderRadius: 100,
-    fontWeight: 'bold',
+  addPostButton: {
+    backgroundColor: '#e63946',
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'row',
-    elevation: 4,
+    elevation: 3,
   },
-  headerPlusIconText: {
-    color: 'white',
+  addPostText: {
+    color: '#fff',
+    fontSize: 26,
     fontWeight: 'bold',
-    fontSize: 27,
+  },
+  postContainer: {
+    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    marginVertical: 10,
+    borderRadius: 12,
+    overflow: 'hidden',
+    elevation: 2,
+  },
+  postImage: {
+    width: '100%',
+    height: 200,
+  },
+  postDetails: {
+    padding: 12,
+  },
+  userName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  timestamp: {
+    fontSize: 13,
+    color: '#999',
+    marginBottom: 6,
+  },
+  recipeName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#e63946',
+    marginBottom: 6,
+  },
+  description: {
+    fontSize: 15,
+    color: '#444',
+    marginBottom: 12,
+  },
+  interactions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  likeText: {
+    fontSize: 15,
+    color: '#e63946',
+    fontWeight: '600',
+  },
+  commentText: {
+    fontSize: 15,
+    color: '#457b9d',
+    fontWeight: '600',
+  },
+  noPostView: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 50,
+  },
+  noPostText: {
+    fontSize: 18,
+    color: '#999',
   },
   modal: {
     justifyContent: 'flex-end',
@@ -107,29 +242,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalTitle: {
-    fontSize: 19,
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 10,
     color: '#333',
   },
   modalText: {
-    fontSize: 18,
-    color: '#333',
+    fontSize: 16,
     textAlign: 'center',
-    marginHorizontal: 10,
+    marginBottom: 20,
+    color: '#555',
   },
   modalButton: {
-    backgroundColor: 'red',
-    padding: 10,
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    marginVertical: 20,
+    backgroundColor: '#e63946',
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    marginBottom: 10,
   },
   modalButtonText: {
     color: 'white',
-    fontWeight: '500',
+    fontWeight: '600',
+    fontSize: 16,
   },
   modalCancelButtonText: {
-    color: 'blue',
-    fontSize: 19,
+    color: '#007bff',
+    fontSize: 16,
     fontWeight: '500',
   },
 });
