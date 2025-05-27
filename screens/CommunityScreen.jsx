@@ -21,6 +21,7 @@ const CommunityScreen = () => {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const {token} = useSelector(state => state.auth);
+  console.log('token', token);
 
   const handleAddPost = () => {
     if (!token) {
@@ -41,6 +42,41 @@ const CommunityScreen = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleLike = async postId => {
+    if (!token) {
+      setIsModalVisible(true);
+      return;
+    }
+
+    try {
+      const res = await axios.post(
+        `http://192.168.102.29:8000/api/v1/post/${postId}/like`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      console.log('res1', res);
+
+      const updatedPosts = posts.map(post =>
+        post._id === postId ? res.data?.post : post,
+      );
+
+      // console.log('updatedPost', updatedPosts);
+
+      setPosts(updatedPosts);
+    } catch (error) {
+      console.log('Error on handle Like', error);
+    }
+  };
+
+  const handleComment = postId => {
+    navigation.navigate('Comment', {postId});
   };
 
   useEffect(() => {
@@ -64,11 +100,13 @@ const CommunityScreen = () => {
           <Text style={styles.recipeName}>{item.recipeName}</Text>
           <Text style={styles.description}>{item.description}</Text>
           <View style={styles.interactions}>
-            <TouchableOpacity>
-              <Text style={styles.likeText}>{item.likes.length} ❤️</Text>
+            <TouchableOpacity onPress={() => handleLike(item._id)}>
+              <Text style={styles.likeText}>{item?.likes?.length} ❤️</Text>
             </TouchableOpacity>
-            <TouchableOpacity>
-              <Text style={styles.commentText}>{item.comments.length} 💬</Text>
+            <TouchableOpacity onPress={() => handleComment(item._id)}>
+              <Text style={styles.commentText}>
+                {item?.comments?.length} 💬
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

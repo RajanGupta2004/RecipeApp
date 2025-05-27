@@ -13,6 +13,7 @@ import DishDetailsScreen from '../screens/DishDetailsScreen';
 import MealPlanDetailScreen from '../screens/MealPlanDetailScreen';
 import LoginScreen from '../screens/LoginScreen';
 import AddPostScreen from '../screens/AddPostScreen';
+import CommentsScreen from '../screens/CommentsScreen';
 // import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 
 //  25b3c4eda6f64b83830b08e2d1c379f4
@@ -85,6 +86,11 @@ function CommunityStackNavigator() {
       <CommunityStack.Screen
         name="AddPost"
         component={AddPostScreen}
+        options={{headerShown: false}}
+      />
+      <CommunityStack.Screen
+        name="Comment"
+        component={CommentsScreen}
         options={{headerShown: false}}
       />
     </CommunityStack.Navigator>

@@ -2,6 +2,7 @@ import User from './models/user.model.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import Post from './models/post.model.js';
+import Comment from './models/comments.model.js';
 
 export const Register = async (req, res) => {
   try {
@@ -138,6 +139,95 @@ export const getAllPost = async (req, res) => {
     }
 
     return res.status(200).json({post: allPost});
+  } catch (error) {
+    console.log('Error', error);
+    return res.status(500).json({message: 'Something went wronge....'});
+  }
+};
+
+export const LikePost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userInfo = req.user;
+    if (!postId) {
+      return res.status(400).json({message: 'Post id is required'});
+    }
+
+    const postExist = await Post.findById(postId);
+    if (!postExist) {
+      return res.status(404).json({message: 'Post not found...'});
+    }
+
+    if (!postExist.likes.includes(userInfo.id)) {
+      postExist.likes.push(userInfo.id);
+      await postExist.save();
+    }
+
+    return res.status(200).json({message: 'Post liked', post: postExist});
+  } catch (error) {
+    console.log('Error', error);
+    return res.status(500).json({message: 'Something went wronge....'});
+  }
+};
+
+export const commentOnPost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user.id;
+    const {comment} = req.body;
+    if (!comment) {
+      return res.status(400).json({message: 'comment is required...'});
+    }
+
+    const postExist = await Post.findById(postId);
+    if (!postExist) {
+      return res.status(404).json({message: 'Post not found...'});
+    }
+
+    const newComment = await Comment.create({
+      postId: postExist._id,
+      userId: userId,
+      text: comment,
+    });
+
+    postExist.comments.push(newComment._id);
+
+    await postExist.save();
+
+    return res.status(200).json({
+      message: 'Commented on post',
+      comment: newComment,
+    });
+  } catch (error) {
+    console.log('Error', error);
+    return res.status(500).json({message: 'Something went wronge....'});
+  }
+};
+
+export const fetchPostById = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const post = await Post.findById(postId).populate('userId');
+    if (!post) {
+      return res.status(404).json({message: 'Post doest not exist...'});
+    }
+
+    return res.status(200).json({message: 'success', post});
+  } catch (error) {
+    console.log('Error', error);
+    return res.status(500).json({message: 'Something went wronge....'});
+  }
+};
+
+export const getAllComments = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const comment = await Comment.find({postId: postId}).populate('userId');
+    if (!comment) {
+      return res.status(404).json({message: ' Comments Not  found....'});
+    }
+
+    return res.status(200).json({message: 'Success', comment});
   } catch (error) {
     console.log('Error', error);
     return res.status(500).json({message: 'Something went wronge....'});

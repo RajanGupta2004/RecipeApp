@@ -49,7 +49,7 @@ const DishDetailsScreen = () => {
   }
 
   console.log('recipe', recipe);
-  console.log('recipe?.extendedIngredients', recipe.analyzedInstructions);
+  // console.log('recipe?.extendedIngredients', recipe.analyzedInstructions);
 
   return (
     <ScrollView style={styles.container}>
